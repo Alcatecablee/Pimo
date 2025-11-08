@@ -143,16 +143,17 @@ export default function VideoPlayer() {
               className="w-full h-full"
               poster={video.poster || video.thumbnail}
               preload="metadata"
-              onError={(e) => {
+              onError={() => {
                 const errorCode = videoRef.current?.error?.code;
                 const errorMessages: Record<number, string> = {
-                  1: "Loading aborted",
-                  2: "Network error",
-                  3: "Decoding failed",
-                  4: "Video format not supported",
+                  1: "Loading was aborted",
+                  2: "Network error - please check your connection",
+                  3: "Unable to decode video - format may not be supported",
+                  4: "Video format is not supported by your browser",
                 };
-                const errorMsg = errorMessages[errorCode || 0] || "Video playback failed";
-                console.error("Video playback error:", errorMsg, e);
+                const errorMsg = errorMessages[errorCode || 0] || "Failed to load video";
+                setStreamError(errorMsg);
+                console.error("Video playback error (code:" + errorCode + "):", errorMsg);
                 toast.error(errorMsg);
               }}
               onLoadedMetadata={() => {
