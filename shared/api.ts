@@ -21,6 +21,8 @@ export interface Video {
   duration: number;
   thumbnail?: string;
   poster?: string;
+  assetUrl?: string;
+  assetPath?: string;
   created_at?: string;
   updated_at?: string;
   views?: number;
