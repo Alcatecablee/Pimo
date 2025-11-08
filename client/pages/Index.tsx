@@ -18,7 +18,7 @@ export default function Index() {
   const [folders, setFolders] = useState<VideoFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
@@ -80,7 +80,7 @@ export default function Index() {
       filtered = filtered.filter(
         (video) =>
           video.title.toLowerCase().includes(query) ||
-          video.description?.toLowerCase().includes(query)
+          video.description?.toLowerCase().includes(query),
       );
     }
 
@@ -120,12 +120,14 @@ export default function Index() {
       ];
     }
 
-    return folders.map((folder) => ({
-      folder,
-      videos: filteredAndSortedVideos.filter(
-        (v) => v.folder_id === folder.id
-      ),
-    })).filter((group) => group.videos.length > 0);
+    return folders
+      .map((folder) => ({
+        folder,
+        videos: filteredAndSortedVideos.filter(
+          (v) => v.folder_id === folder.id,
+        ),
+      }))
+      .filter((group) => group.videos.length > 0);
   }, [folders, filteredAndSortedVideos, selectedFolder]);
 
   return (
@@ -172,7 +174,10 @@ export default function Index() {
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                 <Filter className="w-5 h-5 text-muted-foreground" />
-                <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                <Select
+                  value={selectedFolder}
+                  onValueChange={setSelectedFolder}
+                >
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="All Folders" />
                   </SelectTrigger>
@@ -180,7 +185,9 @@ export default function Index() {
                     <SelectItem value="all">All Folders</SelectItem>
                     {folders.map((folder) => (
                       <SelectItem key={folder.id} value={folder.id}>
-                        {folder.name} ({videos.filter((v) => v.folder_id === folder.id).length})
+                        {folder.name} (
+                        {videos.filter((v) => v.folder_id === folder.id).length}
+                        )
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -205,7 +212,8 @@ export default function Index() {
             {/* Results summary */}
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <p>
-                Showing {filteredAndSortedVideos.length} of {videos.length} videos
+                Showing {filteredAndSortedVideos.length} of {videos.length}{" "}
+                videos
               </p>
               {(searchQuery || selectedFolder !== "all") && (
                 <button
@@ -263,7 +271,9 @@ export default function Index() {
               <AlertCircle className="w-8 h-8 text-muted-foreground" />
             </div>
             <h2 className="text-2xl font-semibold mb-2">
-              {searchQuery || selectedFolder !== "all" ? "No Results Found" : "No Videos Found"}
+              {searchQuery || selectedFolder !== "all"
+                ? "No Results Found"
+                : "No Videos Found"}
             </h2>
             <p className="text-muted-foreground mb-6">
               {searchQuery || selectedFolder !== "all"
