@@ -24,17 +24,18 @@ export default function Index() {
   }, []);
 
   const fetchVideos = async (retryCount = 0) => {
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 3;
     const RETRY_DELAY = 2000;
-    
+    const REQUEST_TIMEOUT = 25000; // 25 seconds - matches server timeout
+
     try {
       if (retryCount === 0) {
         setLoading(true);
         setError(null);
       }
-      
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
       
       const response = await fetch("/api/videos", {
         signal: controller.signal,
