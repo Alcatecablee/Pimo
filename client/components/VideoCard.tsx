@@ -1,11 +1,13 @@
 import { Video } from "@shared/api";
 import { Play } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface VideoCardProps {
   video: Video;
 }
 
 export function VideoCard({ video }: VideoCardProps) {
+  const videoLink = `/video/${video.id}`;
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
