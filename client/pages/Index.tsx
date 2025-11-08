@@ -63,13 +63,20 @@ export default function Index() {
       toast.success(`Loaded ${data.videos.length} videos successfully`);
       setLoading(false);
     } catch (err) {
-      if (retryCount < MAX_RETRIES && err instanceof Error && 
-          (err.name === 'AbortError' || err.message.includes('fetch'))) {
-        toast.info(`Connection issue, retrying... (${retryCount + 1}/${MAX_RETRIES})`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      const isAbortError = err instanceof Error && (
+        err.name === 'AbortError' ||
+        err.message.includes('aborted') ||
+        err.message.includes('timeout') ||
+        err.message.includes('fetch')
+      );
+
+      if (retryCount < MAX_RETRIES && isAbortError) {
+        const retryNum = retryCount + 1;
+        toast.info(`Connection issue, retrying... (${retryNum}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retryNum)); // Increase delay with each retry
         return fetchVideos(retryCount + 1);
       }
-      
+
       const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching videos";
       setError(errorMessage);
       setLoading(false);
