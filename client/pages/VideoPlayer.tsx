@@ -143,8 +143,16 @@ export default function VideoPlayer() {
               poster={video.poster || video.thumbnail}
               preload="metadata"
               onError={(e) => {
-                console.error("Video playback error:", e);
-                toast.error("Failed to load video stream");
+                const errorCode = videoRef.current?.error?.code;
+                const errorMessages: Record<number, string> = {
+                  1: "Loading aborted",
+                  2: "Network error",
+                  3: "Decoding failed",
+                  4: "Video format not supported",
+                };
+                const errorMsg = errorMessages[errorCode || 0] || "Video playback failed";
+                console.error("Video playback error:", errorMsg, e);
+                toast.error(errorMsg);
               }}
               onLoadedMetadata={() => {
                 toast.success("Video loaded successfully");
