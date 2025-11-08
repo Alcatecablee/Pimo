@@ -94,10 +94,8 @@ export default function Index() {
           <div className="space-y-12">
             {folders.length > 0 ? (
               folders.map((folder) => {
-                const folderVideos = videos.filter((v) =>
-                  v.id && folder.id
-                    ? v.id.startsWith(folder.id)
-                    : false
+                const folderVideos = videos.filter(
+                  (v) => v.folder_id === folder.id
                 );
 
                 return (
