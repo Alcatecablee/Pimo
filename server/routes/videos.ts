@@ -40,10 +40,13 @@ function normalizeVideo(video: any, folderId: string): Video {
   }
 
   // Extract asset path from poster URL
-  // e.g., "https://assets.upns.net/ilwWC4Mp5.../poster.png" -> "/ilwWC4Mp5..."
+  // e.g., "/ilwWC4Mp5.../poster.png" -> "/ilwWC4Mp5..." or "https://assets.upns.net/ilwWC4Mp5.../poster.png" -> "/ilwWC4Mp5..."
   let assetPath: string | undefined;
   if (video.poster) {
-    const match = video.poster.match(/(\/[^/]+\/[^/]+\/[^/]+)\/[^/]+$/);
+    // Remove the filename (poster.png, poster.jpg, etc.)
+    const pathWithoutFile = video.poster.replace(/\/[^/]+\.(png|jpg|jpeg|webp)$/i, "");
+    // Extract just the path part if it's a full URL
+    const match = pathWithoutFile.match(/(\/[^/]+\/[^/]+\/[^/]+)$/);
     if (match) {
       assetPath = match[1];
     }
