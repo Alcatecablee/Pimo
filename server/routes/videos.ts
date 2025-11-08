@@ -55,30 +55,32 @@ async function fetchAllVideosFromFolder(
   const allVideos: any[] = [];
   let page = 1;
   const perPage = 100; // Fetch 100 per page
-  let hasMore = true;
 
   try {
-    while (hasMore) {
-      const url = `${UPNSHARE_API_BASE}/video/folder/${folderId}?page=${page}&per_page=${perPage}`;
+    while (true) {
+      const url = `${UPNSHARE_API_BASE}/video/folder/${folderId}?page=${page}&perPage=${perPage}`;
       const response = await fetchWithAuth(url);
 
+      // Handle the paginated response format: { data: [...], metadata: {...} }
       const videos = Array.isArray(response)
         ? response
-        : response.data || response.videos || [];
+        : response.data || [];
+
+      const metadata = response.metadata || {};
 
       if (videos.length > 0) {
         allVideos.push(...videos);
       }
 
-      // Check if there are more pages
-      hasMore = videos.length === perPage;
-      page++;
+      // Check if there are more pages using maxPage from metadata
+      const currentPage = metadata.currentPage || page;
+      const maxPage = metadata.maxPage || Math.ceil((metadata.total || 0) / perPage);
 
-      // Safety limit to prevent infinite loops
-      if (page > 100) {
-        console.warn(`Stopped fetching folder ${folderId} after 100 pages`);
+      if (!videos.length || currentPage >= maxPage) {
         break;
       }
+
+      page++;
     }
 
     return { videos: allVideos };
