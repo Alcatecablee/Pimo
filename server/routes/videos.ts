@@ -39,19 +39,26 @@ function normalizeVideo(video: any, folderId: string): Video {
     console.log("Sample video from API:", JSON.stringify(video, null, 2));
   }
 
-  // Extract asset path from poster URL
-  // e.g., "/ilwWC4Mp5.../poster.png" -> "/ilwWC4Mp5..." or "https://assets.upns.net/ilwWC4Mp5.../poster.png" -> "/ilwWC4Mp5..."
+  // Extract asset path from poster URL and construct full poster URL
+  // e.g., "/ilwWC4Mp5MVI4.../poster.png" -> "/ilwWC4Mp5MVI4..."
   let assetPath: string | undefined;
+  let posterUrl: string | undefined;
+
   if (video.poster) {
-    // Remove the filename (poster.png, poster.jpg, etc.)
-    const pathWithoutFile = video.poster.replace(
-      /\/[^/]+\.(png|jpg|jpeg|webp)$/i,
-      "",
-    );
-    // Extract just the path part if it's a full URL
-    const match = pathWithoutFile.match(/(\/[^/]+\/[^/]+\/[^/]+)$/);
-    if (match) {
-      assetPath = match[1];
+    const assetUrl = video.assetUrl || "https://assets.upns.net";
+
+    // If poster is a relative path, make it absolute
+    if (video.poster.startsWith("/")) {
+      posterUrl = assetUrl + video.poster;
+    } else {
+      posterUrl = video.poster;
+    }
+
+    // Extract asset path by removing the filename
+    // e.g., "/ilwWC4Mp5MVI4XuXNUu0tQ/db/j3t1qkoj/3iphd/poster.png" -> "/ilwWC4Mp5MVI4XuXNUu0tQ/db/j3t1qkoj/3iphd"
+    const pathMatch = posterUrl.match(/^(https?:\/\/[^/]+)?(\/.*)\/(poster|preview|[^/]+\.(png|jpg|jpeg|webp))$/i);
+    if (pathMatch) {
+      assetPath = pathMatch[2]; // Get the path without filename
     }
   }
 
@@ -61,8 +68,8 @@ function normalizeVideo(video: any, folderId: string): Video {
     description: video.description?.trim() || undefined,
     duration: video.duration || 0,
     thumbnail: video.thumbnail || undefined,
-    poster: video.poster || video.thumbnail || undefined,
-    assetUrl: "https://assets.upns.net",
+    poster: posterUrl || video.thumbnail || undefined,
+    assetUrl: video.assetUrl || "https://assets.upns.net",
     assetPath: assetPath,
     created_at: video.created_at || video.createdAt || undefined,
     updated_at: video.updated_at || video.updatedAt || undefined,
