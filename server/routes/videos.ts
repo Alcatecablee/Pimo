@@ -25,7 +25,9 @@ async function fetchWithAuth(url: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[fetchWithAuth] API error: ${response.status} ${response.statusText}`);
+    console.error(
+      `[fetchWithAuth] API error: ${response.status} ${response.statusText}`,
+    );
     console.error(`[fetchWithAuth] Error response body:`, errorText);
     throw new Error(
       `UPNshare API error: ${response.status} ${response.statusText}`,
@@ -138,7 +140,10 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
   try {
     console.log("[handleGetVideos] Starting request");
     console.log("[handleGetVideos] API_TOKEN present:", !!API_TOKEN);
-    console.log("[handleGetVideos] API_TOKEN value:", API_TOKEN ? API_TOKEN.substring(0, 5) + "..." : "NOT SET");
+    console.log(
+      "[handleGetVideos] API_TOKEN value:",
+      API_TOKEN ? API_TOKEN.substring(0, 5) + "..." : "NOT SET",
+    );
 
     if (!API_TOKEN) {
       console.error("[handleGetVideos] API_TOKEN is not set in environment");
@@ -211,7 +216,10 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
     console.log(`Total videos fetched: ${allVideos.length}`);
     res.json(response);
   } catch (error) {
-    console.error("[handleGetVideos] Error fetching videos from UPNshare:", error);
+    console.error(
+      "[handleGetVideos] Error fetching videos from UPNshare:",
+      error,
+    );
     if (error instanceof Error) {
       console.error("[handleGetVideos] Error message:", error.message);
       console.error("[handleGetVideos] Error stack:", error.stack);
@@ -323,8 +331,9 @@ export const handleHlsProxy: RequestHandler = async (req, res) => {
     const response = await fetch(targetUrl, {
       headers: {
         "api-token": API_TOKEN,
-        "Referer": "https://upnshare.com/",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Referer: "https://upnshare.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
     });
 
@@ -344,8 +353,9 @@ export const handleHlsProxy: RequestHandler = async (req, res) => {
     }
 
     // For m3u8 files, modify the URLs to point to our proxy
-    const isManifest = path === "" || (typeof path === "string" && path.endsWith(".m3u8"));
-    
+    const isManifest =
+      path === "" || (typeof path === "string" && path.endsWith(".m3u8"));
+
     if (isManifest) {
       const text = await response.text();
       const modifiedText = text.replace(
