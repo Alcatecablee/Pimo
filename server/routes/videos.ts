@@ -197,12 +197,13 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
       return { allVideos, allFolders };
     })();
 
-    // Race between fetch and timeout
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Global timeout reached')), GLOBAL_TIMEOUT);
-    });
-
-    const { allVideos, allFolders } = await Promise.race([fetchPromise, timeoutPromise]);
+    // Execute the fetch with a hard timeout
+    const { allVideos, allFolders } = await Promise.race([
+      fetchPromise,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Global timeout reached')), GLOBAL_TIMEOUT - 1000)
+      })
+    ]);
 
     const response: VideosResponse = {
       videos: allVideos,
