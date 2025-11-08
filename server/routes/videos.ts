@@ -56,7 +56,9 @@ function normalizeVideo(video: any, folderId: string): Video {
 
     // Extract asset path by removing the filename
     // e.g., "/ilwWC4Mp5MVI4XuXNUu0tQ/db/j3t1qkoj/3iphd/poster.png" -> "/ilwWC4Mp5MVI4XuXNUu0tQ/db/j3t1qkoj/3iphd"
-    const pathMatch = posterUrl.match(/^(https?:\/\/[^/]+)?(\/.*)\/(poster|preview|[^/]+\.(png|jpg|jpeg|webp))$/i);
+    const pathMatch = posterUrl.match(
+      /^(https?:\/\/[^/]+)?(\/.*)\/(poster|preview|[^/]+\.(png|jpg|jpeg|webp))$/i,
+    );
     if (pathMatch) {
       assetPath = pathMatch[2]; // Get the path without filename
     }
