@@ -1,36 +1,27 @@
 import { Request, Response } from "express";
-
-// TODO: Replace with proper database persistence and time-series data store
-// TODO: Fix analytics calculation to use timestamp deltas instead of assuming 1s increments
-// TODO: Add debouncing to prevent double-counting from overlapping calls
-// LIMITATION: Data is lost on server restart - not suitable for production
+import { query } from "../utils/database";
 
 interface VideoAnalytics {
   videoId: string;
-  totalWatchTime: number; // in seconds
-  totalViews: number;
+  totalWatchTime: number;
+  uniqueViewers: number;
   averageWatchTime: number;
-  completionRate: number; // percentage
-  engagement: {
-    [timestamp: number]: number; // number of viewers at each second
-  };
-  sessions: VideoSession[];
+  completionRate: number;
+  totalSessions: number;
 }
 
-interface VideoSession {
-  sessionId: string;
-  videoId: string;
-  startTime: string;
-  endTime?: string;
-  watchTime: number; // total seconds watched
-  completionPercentage: number;
-  seekEvents: number;
-  pauseEvents: number;
+interface AnalyticsSessionRow {
+  session_id: string;
+  video_id: string;
+  user_id: string;
+  start_time: Date;
+  end_time: Date | null;
+  watch_time: number;
+  last_position: number;
+  completed: boolean;
+  pause_count: number;
+  seek_count: number;
 }
-
-// In-memory storage (replace with database in production)
-const analyticsStore = new Map<string, VideoAnalytics>();
-const sessionsStore = new Map<string, VideoSession>();
 
 /**
  * Start a playback session
@@ -41,7 +32,7 @@ export async function startSession(
   res: Response
 ): Promise<void> {
   try {
-    const { videoId } = req.body;
+    const { videoId, userId = "default" } = req.body;
 
     if (!videoId || typeof videoId !== "string") {
       res.status(400).json({ error: "Video ID is required" });
@@ -50,30 +41,12 @@ export async function startSession(
 
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const session: VideoSession = {
-      sessionId,
-      videoId,
-      startTime: new Date().toISOString(),
-      watchTime: 0,
-      completionPercentage: 0,
-      seekEvents: 0,
-      pauseEvents: 0,
-    };
-
-    sessionsStore.set(sessionId, session);
-
-    // Initialize analytics if not exists
-    if (!analyticsStore.has(videoId)) {
-      analyticsStore.set(videoId, {
-        videoId,
-        totalWatchTime: 0,
-        totalViews: 0,
-        averageWatchTime: 0,
-        completionRate: 0,
-        engagement: {},
-        sessions: [],
-      });
-    }
+    await query(
+      `INSERT INTO analytics_sessions 
+       (session_id, video_id, user_id, start_time) 
+       VALUES ($1, $2, $3, NOW())`,
+      [sessionId, videoId, userId]
+    );
 
     console.log(`[startSession] Started session ${sessionId} for video ${videoId}`);
     res.json({ sessionId });
@@ -101,34 +74,46 @@ export async function updateProgress(
       return;
     }
 
-    const session = sessionsStore.get(sessionId);
-    if (!session) {
+    const sessionResult = await query<AnalyticsSessionRow>(
+      `SELECT * FROM analytics_sessions WHERE session_id = $1`,
+      [sessionId]
+    );
+
+    if (sessionResult.rows.length === 0) {
       res.status(404).json({ error: "Session not found" });
       return;
     }
 
-    // Update session data
-    // NOTE: This assumes progress updates come every 1 second
-    // TODO: Calculate actual time delta from timestamps for accuracy
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
     if (typeof currentTime === "number") {
-      const completionPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
-      session.completionPercentage = Math.max(session.completionPercentage, completionPercentage);
-      session.watchTime += 1; // LIMITATION: Assumes 1-second intervals
+      updates.push(`last_position = $${paramIndex++}`);
+      values.push(Math.floor(currentTime));
+
+      updates.push(`watch_time = watch_time + 1`);
+
+      if (duration > 0 && currentTime >= duration * 0.9) {
+        updates.push(`completed = true`);
+      }
     }
 
     if (event === "seek") {
-      session.seekEvents += 1;
+      updates.push(`seek_count = seek_count + 1`);
     } else if (event === "pause") {
-      session.pauseEvents += 1;
+      updates.push(`pause_count = pause_count + 1`);
     }
 
-    sessionsStore.set(sessionId, session);
+    if (updates.length > 0) {
+      updates.push(`updated_at = NOW()`);
+      values.push(sessionId);
 
-    // Update video engagement heatmap
-    const analytics = analyticsStore.get(session.videoId);
-    if (analytics && typeof currentTime === "number") {
-      const timestamp = Math.floor(currentTime);
-      analytics.engagement[timestamp] = (analytics.engagement[timestamp] || 0) + 1;
+      await query(
+        `UPDATE analytics_sessions SET ${updates.join(", ")} 
+         WHERE session_id = $${paramIndex}`,
+        values
+      );
     }
 
     res.json({ success: true });
@@ -156,29 +141,20 @@ export async function endSession(
       return;
     }
 
-    const session = sessionsStore.get(sessionId);
-    if (!session) {
+    const result = await query(
+      `UPDATE analytics_sessions 
+       SET end_time = NOW(), updated_at = NOW() 
+       WHERE session_id = $1 
+       RETURNING *`,
+      [sessionId]
+    );
+
+    if (result.rows.length === 0) {
       res.status(404).json({ error: "Session not found" });
       return;
     }
 
-    session.endTime = new Date().toISOString();
-    sessionsStore.set(sessionId, session);
-
-    // Update video analytics
-    const analytics = analyticsStore.get(session.videoId);
-    if (analytics) {
-      analytics.sessions.push(session);
-      analytics.totalViews += 1;
-      analytics.totalWatchTime += session.watchTime;
-      analytics.averageWatchTime = analytics.totalWatchTime / analytics.totalViews;
-      
-      // Calculate completion rate
-      const completedSessions = analytics.sessions.filter(s => s.completionPercentage >= 90).length;
-      analytics.completionRate = (completedSessions / analytics.totalViews) * 100;
-    }
-
-    console.log(`[endSession] Ended session ${sessionId} - watched ${session.watchTime}s (${session.completionPercentage.toFixed(1)}% complete)`);
+    console.log(`[endSession] Ended session ${sessionId}`);
     res.json({ success: true });
   } catch (error) {
     console.error("[endSession] Error:", error);
@@ -199,19 +175,27 @@ export async function getVideoAnalytics(
   try {
     const { videoId } = req.params;
 
-    const analytics = analyticsStore.get(videoId);
-    if (!analytics) {
-      res.json({
-        videoId,
-        totalWatchTime: 0,
-        totalViews: 0,
-        averageWatchTime: 0,
-        completionRate: 0,
-        engagement: {},
-        sessions: [],
-      });
-      return;
-    }
+    const result = await query<AnalyticsSessionRow>(
+      `SELECT * FROM analytics_sessions WHERE video_id = $1`,
+      [videoId]
+    );
+
+    const sessions = result.rows;
+    const totalSessions = sessions.length;
+    const uniqueViewers = new Set(sessions.map((s) => s.user_id)).size;
+    const totalWatchTime = sessions.reduce((sum, s) => sum + s.watch_time, 0);
+    const completedSessions = sessions.filter((s) => s.completed).length;
+    const averageWatchTime = totalSessions > 0 ? totalWatchTime / totalSessions : 0;
+    const completionRate = totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0;
+
+    const analytics: VideoAnalytics = {
+      videoId,
+      totalWatchTime,
+      uniqueViewers,
+      averageWatchTime,
+      completionRate,
+      totalSessions,
+    };
 
     res.json(analytics);
   } catch (error) {
@@ -233,13 +217,21 @@ export async function getEngagementHeatmap(
   try {
     const { videoId } = req.params;
 
-    const analytics = analyticsStore.get(videoId);
-    if (!analytics) {
-      res.json({ engagement: {} });
-      return;
-    }
+    const result = await query<{ last_position: number; count: string }>(
+      `SELECT last_position, COUNT(*) as count 
+       FROM analytics_sessions 
+       WHERE video_id = $1 AND last_position > 0
+       GROUP BY last_position 
+       ORDER BY last_position ASC`,
+      [videoId]
+    );
 
-    res.json({ engagement: analytics.engagement });
+    const heatmap: { [timestamp: number]: number } = {};
+    result.rows.forEach((row) => {
+      heatmap[row.last_position] = parseInt(row.count);
+    });
+
+    res.json({ heatmap });
   } catch (error) {
     console.error("[getEngagementHeatmap] Error:", error);
     res.status(500).json({

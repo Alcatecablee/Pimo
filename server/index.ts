@@ -42,6 +42,7 @@ import {
   getEngagementHeatmap,
 } from "./routes/analytics";
 import { startBackgroundRefresh } from "./utils/background-refresh";
+import { initializeDatabase } from "./utils/database";
 
 export function createServer() {
   const app = express();
@@ -104,6 +105,11 @@ export function createServer() {
   app.post("/api/analytics/session/end", endSession);
   app.get("/api/analytics/video/:videoId", getVideoAnalytics);
   app.get("/api/analytics/video/:videoId/heatmap", getEngagementHeatmap);
+
+  // Initialize database schemas on server startup
+  initializeDatabase().catch((error) => {
+    console.error("❌ Failed to initialize database:", error);
+  });
 
   // Start background refresh on server startup (non-blocking)
   // Schedule it to run after a short delay to not interfere with first request

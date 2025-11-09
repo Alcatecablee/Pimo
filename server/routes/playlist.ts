@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-
-// TODO: Replace with proper database persistence (PostgreSQL, MongoDB, etc.)
-// TODO: Add authentication middleware to validate userId from session
-// TODO: Add authorization checks to ensure users can only access their own playlists
-// LIMITATION: Data is lost on server restart - not suitable for production
+import { query } from "../utils/database";
 
 interface Playlist {
   id: string;
+  userId: string;
   name: string;
   description?: string;
   videoIds: string[];
@@ -14,8 +11,19 @@ interface Playlist {
   updatedAt: string;
 }
 
-// In-memory storage - TEMPORARY solution for prototype
-const playlistsStore = new Map<string, Playlist[]>();
+interface PlaylistRow {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface PlaylistVideoRow {
+  video_id: string;
+  position: number;
+}
 
 /**
  * Get user playlists
@@ -26,10 +34,34 @@ export async function getPlaylists(
   res: Response
 ): Promise<void> {
   try {
-    // SECURITY ISSUE: userId should come from authenticated session, not query param
     const userId = req.query.userId as string || "default";
 
-    const playlists = playlistsStore.get(userId) || [];
+    const result = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    const playlists: Playlist[] = await Promise.all(
+      result.rows.map(async (row) => {
+        const videosResult = await query<PlaylistVideoRow>(
+          `SELECT video_id FROM playlist_videos 
+           WHERE playlist_id = $1 
+           ORDER BY position ASC`,
+          [row.id]
+        );
+
+        return {
+          id: row.id,
+          userId: row.user_id,
+          name: row.name,
+          description: row.description || undefined,
+          videoIds: videosResult.rows.map((v) => v.video_id),
+          createdAt: row.created_at.toISOString(),
+          updatedAt: row.updated_at.toISOString(),
+        };
+      })
+    );
+
     res.json({ playlists });
   } catch (error) {
     console.error("[getPlaylists] Error:", error);
@@ -48,7 +80,7 @@ export async function createPlaylist(
   res: Response
 ): Promise<void> {
   try {
-    const { name, description, videoIds } = req.body;
+    const { name, description, videoIds = [] } = req.body;
     const userId = req.query.userId as string || "default";
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -61,18 +93,37 @@ export async function createPlaylist(
       return;
     }
 
-    const playlist: Playlist = {
-      id: `pl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: name.trim(),
-      description: description?.trim() || "",
-      videoIds,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const playlistId = `pl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const playlists = playlistsStore.get(userId) || [];
-    playlists.push(playlist);
-    playlistsStore.set(userId, playlists);
+    await query(
+      `INSERT INTO playlists (id, user_id, name, description) 
+       VALUES ($1, $2, $3, $4)`,
+      [playlistId, userId, name.trim(), description?.trim() || null]
+    );
+
+    for (let i = 0; i < videoIds.length; i++) {
+      await query(
+        `INSERT INTO playlist_videos (playlist_id, video_id, position) 
+         VALUES ($1, $2, $3)
+         ON CONFLICT (playlist_id, video_id) DO NOTHING`,
+        [playlistId, videoIds[i], i]
+      );
+    }
+
+    const result = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE id = $1`,
+      [playlistId]
+    );
+
+    const playlist: Playlist = {
+      id: result.rows[0].id,
+      userId: result.rows[0].user_id,
+      name: result.rows[0].name,
+      description: result.rows[0].description || undefined,
+      videoIds,
+      createdAt: result.rows[0].created_at.toISOString(),
+      updatedAt: result.rows[0].updated_at.toISOString(),
+    };
 
     console.log(`[createPlaylist] Created playlist: ${playlist.name} for user: ${userId}`);
     res.status(201).json({ playlist });
@@ -86,7 +137,7 @@ export async function createPlaylist(
 
 /**
  * Update a playlist
- * PATCH /api/playlists/:id
+ * PUT /api/playlists/:id
  */
 export async function updatePlaylist(
   req: Request,
@@ -94,44 +145,74 @@ export async function updatePlaylist(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, description, videoIds } = req.body;
+    const { name, description } = req.body;
     const userId = req.query.userId as string || "default";
 
-    const playlists = playlistsStore.get(userId) || [];
-    const playlistIndex = playlists.findIndex((p) => p.id === id);
+    const checkResult = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
 
-    if (playlistIndex === -1) {
+    if (checkResult.rows.length === 0) {
       res.status(404).json({ error: "Playlist not found" });
       return;
     }
 
-    const playlist = playlists[playlistIndex];
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
 
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim().length === 0) {
         res.status(400).json({ error: "Invalid playlist name" });
         return;
       }
-      playlist.name = name.trim();
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name.trim());
     }
 
     if (description !== undefined) {
-      playlist.description = description?.trim() || "";
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description?.trim() || null);
     }
 
-    if (videoIds !== undefined) {
-      if (!Array.isArray(videoIds)) {
-        res.status(400).json({ error: "Video IDs must be an array" });
-        return;
-      }
-      playlist.videoIds = videoIds;
+    if (updates.length === 0) {
+      res.status(400).json({ error: "No fields to update" });
+      return;
     }
 
-    playlist.updatedAt = new Date().toISOString();
-    playlists[playlistIndex] = playlist;
-    playlistsStore.set(userId, playlists);
+    updates.push(`updated_at = NOW()`);
+    values.push(id, userId);
 
-    console.log(`[updatePlaylist] Updated playlist: ${playlist.name} for user: ${userId}`);
+    await query(
+      `UPDATE playlists SET ${updates.join(", ")} 
+       WHERE id = $${paramIndex++} AND user_id = $${paramIndex}`,
+      values
+    );
+
+    const result = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE id = $1`,
+      [id]
+    );
+
+    const videosResult = await query<PlaylistVideoRow>(
+      `SELECT video_id FROM playlist_videos 
+       WHERE playlist_id = $1 
+       ORDER BY position ASC`,
+      [id]
+    );
+
+    const playlist: Playlist = {
+      id: result.rows[0].id,
+      userId: result.rows[0].user_id,
+      name: result.rows[0].name,
+      description: result.rows[0].description || undefined,
+      videoIds: videosResult.rows.map((v) => v.video_id),
+      createdAt: result.rows[0].created_at.toISOString(),
+      updatedAt: result.rows[0].updated_at.toISOString(),
+    };
+
+    console.log(`[updatePlaylist] Updated playlist: ${id}`);
     res.json({ playlist });
   } catch (error) {
     console.error("[updatePlaylist] Error:", error);
@@ -153,17 +234,17 @@ export async function deletePlaylist(
     const { id } = req.params;
     const userId = req.query.userId as string || "default";
 
-    const playlists = playlistsStore.get(userId) || [];
-    const filteredPlaylists = playlists.filter((p) => p.id !== id);
+    const result = await query(
+      `DELETE FROM playlists WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [id, userId]
+    );
 
-    if (filteredPlaylists.length === playlists.length) {
+    if (result.rows.length === 0) {
       res.status(404).json({ error: "Playlist not found" });
       return;
     }
 
-    playlistsStore.set(userId, filteredPlaylists);
-
-    console.log(`[deletePlaylist] Deleted playlist: ${id} for user: ${userId}`);
+    console.log(`[deletePlaylist] Deleted playlist: ${id}`);
     res.status(204).send();
   } catch (error) {
     console.error("[deletePlaylist] Error:", error);
@@ -191,23 +272,37 @@ export async function addVideoToPlaylist(
       return;
     }
 
-    const playlists = playlistsStore.get(userId) || [];
-    const playlist = playlists.find((p) => p.id === id);
+    const checkResult = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
 
-    if (!playlist) {
+    if (checkResult.rows.length === 0) {
       res.status(404).json({ error: "Playlist not found" });
       return;
     }
 
-    if (!playlist.videoIds.includes(videoId)) {
-      playlist.videoIds.push(videoId);
-      playlist.updatedAt = new Date().toISOString();
-      playlistsStore.set(userId, playlists);
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM playlist_videos WHERE playlist_id = $1`,
+      [id]
+    );
 
-      console.log(`[addVideoToPlaylist] Added video ${videoId} to playlist ${id} for user: ${userId}`);
-    }
+    const position = parseInt(countResult.rows[0].count);
 
-    res.json({ playlist });
+    await query(
+      `INSERT INTO playlist_videos (playlist_id, video_id, position) 
+       VALUES ($1, $2, $3)
+       ON CONFLICT (playlist_id, video_id) DO NOTHING`,
+      [id, videoId, position]
+    );
+
+    await query(
+      `UPDATE playlists SET updated_at = NOW() WHERE id = $1`,
+      [id]
+    );
+
+    console.log(`[addVideoToPlaylist] Added video ${videoId} to playlist ${id}`);
+    res.status(201).json({ success: true });
   } catch (error) {
     console.error("[addVideoToPlaylist] Error:", error);
     res.status(500).json({
@@ -228,20 +323,28 @@ export async function removeVideoFromPlaylist(
     const { id, videoId } = req.params;
     const userId = req.query.userId as string || "default";
 
-    const playlists = playlistsStore.get(userId) || [];
-    const playlist = playlists.find((p) => p.id === id);
+    const checkResult = await query<PlaylistRow>(
+      `SELECT * FROM playlists WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
 
-    if (!playlist) {
+    if (checkResult.rows.length === 0) {
       res.status(404).json({ error: "Playlist not found" });
       return;
     }
 
-    playlist.videoIds = playlist.videoIds.filter((vid) => vid !== videoId);
-    playlist.updatedAt = new Date().toISOString();
-    playlistsStore.set(userId, playlists);
+    await query(
+      `DELETE FROM playlist_videos WHERE playlist_id = $1 AND video_id = $2`,
+      [id, videoId]
+    );
 
-    console.log(`[removeVideoFromPlaylist] Removed video ${videoId} from playlist ${id} for user: ${userId}`);
-    res.json({ playlist });
+    await query(
+      `UPDATE playlists SET updated_at = NOW() WHERE id = $1`,
+      [id]
+    );
+
+    console.log(`[removeVideoFromPlaylist] Removed video ${videoId} from playlist ${id}`);
+    res.status(204).send();
   } catch (error) {
     console.error("[removeVideoFromPlaylist] Error:", error);
     res.status(500).json({
