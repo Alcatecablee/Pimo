@@ -111,3 +111,21 @@ shared/                   # Types used by both client & server
 - **Client-Side Filtering**: Uses React useMemo for efficient video filtering and pagination
 - **Tag System**: Folder names automatically become video tags for categorization
 - **Preview Support**: Infrastructure in place to show video previews on hover when UPNshare provides preview URLs
+
+### Video Player Features (Nov 9, 2025)
+- **Custom Player Controls**: YouTube-inspired overlay controls with:
+  - Play/pause buttons (center overlay + bottom bar)
+  - Interactive seek bar with hover tooltip showing time
+  - Volume slider with mute/unmute toggle
+  - Time display (current / duration)
+  - Settings and fullscreen buttons
+  - Auto-hide controls on playback (shows on mouse movement)
+- **Keyboard Shortcuts**: 
+  - Space/K: Play/Pause
+  - J/L: Skip backward/forward 10 seconds
+  - Arrow Left/Right: Skip 5 seconds
+  - Arrow Up/Down: Volume control
+  - M: Mute toggle
+- **UPnShare Iframe API Integration**: Player URL format `?api=all#videoId` enables API control
+- **Styling**: Red progress bar, gradient overlay, smooth transitions matching YouTube aesthetic
+- **Note**: Iframe postMessage communication requires further testing to enable full playback control
