@@ -53,10 +53,18 @@ import {
   trackRequest,
   trackError,
 } from "./routes/admin-health";
+import {
+  handleGetLogs,
+  handleGetLogStats,
+  handleClearLogs,
+  handleExportLogs,
+} from "./routes/admin-logs";
 import { startBackgroundRefresh } from "./utils/background-refresh";
+import { startLogRetentionCleanup } from "./utils/log-retention";
 import { initializeDatabase } from "./utils/database";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
+import { requestIdMiddleware, pinoHttpMiddleware } from "./middleware/request-id";
 
 export async function createServer() {
   const app = express();
@@ -92,6 +100,10 @@ export async function createServer() {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Request ID and Pino HTTP logging middleware
+  app.use(requestIdMiddleware);
+  app.use(pinoHttpMiddleware);
 
   // Request tracking middleware
   app.use((req, res, next) => {
@@ -193,6 +205,12 @@ export async function createServer() {
   app.get("/api/admin/health/errors", isAuthenticated, handleGetRecentErrors);
   app.post("/api/admin/health/reset", isAuthenticated, handleResetMetrics);
 
+  // Admin log routes - Protected with authentication
+  app.get("/api/admin/logs", isAuthenticated, handleGetLogs);
+  app.get("/api/admin/logs/stats", isAuthenticated, handleGetLogStats);
+  app.delete("/api/admin/logs", isAuthenticated, handleClearLogs);
+  app.post("/api/admin/logs/export", isAuthenticated, handleExportLogs);
+
   // Initialize database schemas on server startup
   initializeDatabase().catch((error) => {
     console.error("❌ Failed to initialize database:", error);
@@ -203,6 +221,11 @@ export async function createServer() {
   setTimeout(() => {
     startBackgroundRefresh();
   }, 1000);
+
+  // Start log retention cleanup (runs daily)
+  setTimeout(() => {
+    startLogRetentionCleanup();
+  }, 2000);
 
   return app;
 }

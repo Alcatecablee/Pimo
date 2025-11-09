@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import os from 'os';
-import { sharedCache } from '../utils/background-refresh';
+import { getCacheMetrics } from '../utils/background-refresh';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 
@@ -91,7 +91,7 @@ export async function handleGetSystemHealth(req: Request, res: Response) {
     const uptime = os.uptime();
 
     // Get cache metrics
-    const cacheStats = sharedCache.getMetrics();
+    const cacheStats = getCacheMetrics();
 
     // Test database connection
     let dbStatus = 'healthy';

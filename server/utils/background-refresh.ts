@@ -188,3 +188,41 @@ export function getRefreshStatus() {
       : null,
   };
 }
+
+// Track cache performance metrics
+let cacheHits = 0;
+let cacheMisses = 0;
+let cacheTimeouts = 0;
+
+export function recordCacheHit() {
+  cacheHits++;
+}
+
+export function recordCacheMiss() {
+  cacheMisses++;
+}
+
+export function recordCacheTimeout() {
+  cacheTimeouts++;
+}
+
+export function getCacheMetrics() {
+  const totalRequests = cacheHits + cacheMisses;
+  const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
+  const timeoutRate = totalRequests > 0 ? (cacheTimeouts / totalRequests) * 100 : 0;
+  
+  const redisConfigured = Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  );
+  
+  return {
+    cacheType: redisConfigured ? 'Redis' : 'In-Memory',
+    hits: cacheHits,
+    misses: cacheMisses,
+    hitRate,
+    timeouts: cacheTimeouts,
+    timeoutRate,
+    videosCount: sharedCache?.data.total || 0,
+    lastRefresh: sharedCache?.timestamp || null,
+  };
+}
