@@ -64,6 +64,7 @@ import {
   handleBackupInfo,
   handleVerifyBackup,
 } from "./routes/admin-backup";
+import webhooksRouter from "./routes/webhooks";
 import { startBackgroundRefresh } from "./utils/background-refresh";
 import { startLogRetentionCleanup } from "./utils/log-retention";
 import { startScheduledBackup } from "./utils/scheduled-backup";
@@ -221,6 +222,9 @@ export async function createServer() {
   app.get("/api/admin/backup/export", isAuthenticated, handleExportBackup);
   app.get("/api/admin/backup/info", isAuthenticated, handleBackupInfo);
   app.post("/api/admin/backup/verify", isAuthenticated, handleVerifyBackup);
+
+  // Webhook routes - Protected with authentication
+  app.use("/api/admin/webhooks", isAuthenticated, webhooksRouter);
 
   // Initialize database schemas on server startup
   initializeDatabase().catch((error) => {

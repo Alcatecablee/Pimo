@@ -18,6 +18,8 @@ const VideosManagement = lazy(() => import("./pages/admin/Videos"));
 const Folders = lazy(() => import("./pages/admin/Folders"));
 const Uploads = lazy(() => import("./pages/admin/Uploads"));
 const Analytics = lazy(() => import("./pages/admin/Analytics"));
+const Webhooks = lazy(() => import("./pages/admin/Webhooks"));
+const APIDocs = lazy(() => import("./pages/admin/APIDocs"));
 const Settings = lazy(() => import("./pages/admin/Settings"));
 const Health = lazy(() => import("./pages/admin/Health"));
 const Logs = lazy(() => import("./pages/admin/Logs"));
@@ -82,6 +84,22 @@ const App = () => (
               element={
                 <Suspense fallback={<LoadingFallback />}>
                   <Analytics />
+                </Suspense>
+              }
+            />
+            <Route
+              path="webhooks"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Webhooks />
+                </Suspense>
+              }
+            />
+            <Route
+              path="api-docs"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <APIDocs />
                 </Suspense>
               }
             />

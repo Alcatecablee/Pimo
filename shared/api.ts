@@ -72,3 +72,79 @@ export interface RealtimeResponse {
     realtime: number;
   }>;
 }
+
+/**
+ * Webhook event types that can trigger webhooks
+ */
+export enum WebhookEventType {
+  VIDEO_UPLOADED = "video.uploaded",
+  VIDEO_DELETED = "video.deleted",
+  VIDEO_UPDATED = "video.updated",
+  FOLDER_CREATED = "folder.created",
+  FOLDER_DELETED = "folder.deleted",
+  FOLDER_UPDATED = "folder.updated",
+  ANALYTICS_MILESTONE = "analytics.milestone",
+}
+
+/**
+ * Webhook configuration
+ */
+export interface WebhookConfig {
+  id?: string;
+  name: string;
+  url: string;
+  secret?: string;
+  events: string[];
+  active: boolean;
+  userId?: string;
+  description?: string;
+  headers?: Record<string, string>;
+  retryCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Webhook delivery record
+ */
+export interface WebhookDeliveryRecord {
+  id: string;
+  webhookId: string;
+  eventType: string;
+  payload: any;
+  responseStatus?: number;
+  responseBody?: string;
+  responseHeaders?: Record<string, string>;
+  duration?: number;
+  success: boolean;
+  attempt: number;
+  error?: string;
+  createdAt: string;
+}
+
+/**
+ * Webhook payload structure sent to external services
+ */
+export interface WebhookPayload {
+  event: string;
+  timestamp: string;
+  data: any;
+  webhookId: string;
+}
+
+/**
+ * Response from /api/admin/webhooks endpoint
+ */
+export interface WebhooksResponse {
+  webhooks: WebhookConfig[];
+  total: number;
+}
+
+/**
+ * Response from /api/admin/webhooks/:id/deliveries endpoint
+ */
+export interface WebhookDeliveriesResponse {
+  deliveries: WebhookDeliveryRecord[];
+  total: number;
+  successRate: number;
+}

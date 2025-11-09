@@ -63,3 +63,57 @@ export const logs = pgTable(
 
 export type InsertLog = typeof logs.$inferInsert;
 export type Log = typeof logs.$inferSelect;
+
+// Webhooks table for managing external integrations
+export const webhooks = pgTable(
+  "webhooks",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 255 }).notNull(),
+    url: text("url").notNull(),
+    secret: varchar("secret", { length: 255 }), // Optional HMAC secret for signing payloads
+    events: jsonb("events").notNull(), // Array of event types to trigger this webhook
+    active: integer("active").notNull().default(1), // 1 = active, 0 = inactive
+    userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // Webhook owner
+    description: text("description"),
+    headers: jsonb("headers"), // Optional custom headers
+    retryCount: integer("retry_count").default(3), // Number of retries for failed deliveries
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("IDX_webhooks_user_id").on(table.userId),
+    index("IDX_webhooks_active").on(table.active),
+  ],
+);
+
+export type InsertWebhook = typeof webhooks.$inferInsert;
+export type Webhook = typeof webhooks.$inferSelect;
+
+// Webhook deliveries table for tracking webhook executions
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    webhookId: varchar("webhook_id").references(() => webhooks.id, { onDelete: "cascade" }).notNull(),
+    eventType: varchar("event_type", { length: 100 }).notNull(),
+    payload: jsonb("payload").notNull(),
+    responseStatus: integer("response_status"),
+    responseBody: text("response_body"),
+    responseHeaders: jsonb("response_headers"),
+    duration: integer("duration"), // Milliseconds
+    success: integer("success").notNull(), // 1 = success, 0 = failed
+    attempt: integer("attempt").default(1).notNull(),
+    error: text("error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("IDX_webhook_deliveries_webhook_id").on(table.webhookId),
+    index("IDX_webhook_deliveries_event_type").on(table.eventType),
+    index("IDX_webhook_deliveries_created_at").on(table.createdAt),
+    index("IDX_webhook_deliveries_success").on(table.success),
+  ],
+);
+
+export type InsertWebhookDelivery = typeof webhookDeliveries.$inferInsert;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
