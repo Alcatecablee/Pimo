@@ -24,6 +24,8 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 export const handleGetVideos: RequestHandler = async (req, res) => {
   const startTime = Date.now();
   const GLOBAL_TIMEOUT = 15000; // 15 seconds - be very conservative to avoid Vercel's 30s limit
+  const STALE_WHILE_REVALIDATE_TTL = 60 * 60 * 1000; // 1 hour - serve stale data for up to 1 hour
+  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
   try {
     performanceMonitor.recordRequest();
@@ -43,17 +45,17 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
       });
     }
 
-    // Check in-memory cache first (fastest)
+    // Check in-memory cache first (fastest) - fresh cache
     if (cache && Date.now() - cache.timestamp < CACHE_TTL) {
-      console.log("✅ Returning in-memory cached video data");
+      console.log("✅ Returning fresh in-memory cached video data");
       performanceMonitor.recordCacheHit();
       performanceMonitor.logStats();
       return res.json(cache.data);
     }
 
-    // Check shared cache from background refresh
+    // Check shared cache from background refresh - fresh cache
     if (sharedCache && Date.now() - sharedCache.timestamp < CACHE_TTL) {
-      console.log("✅ Returning background refresh cached video data");
+      console.log("✅ Returning fresh background refresh cached video data");
       performanceMonitor.recordCacheHit();
 
       // Update in-memory cache for next request
@@ -66,10 +68,10 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
       return res.json(sharedCache.data);
     }
 
-    // Check Redis cache (persistent, survives restarts)
+    // Check Redis cache (persistent, survives restarts) - fresh cache
     const redisData = await getFromRedisCache();
     if (redisData) {
-      console.log("✅ Returning Redis cached video data");
+      console.log("✅ Returning fresh Redis cached video data");
       performanceMonitor.recordCacheHit();
 
       // Update in-memory cache for next request
@@ -80,6 +82,48 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
 
       performanceMonitor.logStats();
       return res.json(redisData);
+    }
+
+    // STALE-WHILE-REVALIDATE: In serverless mode, serve stale data if available
+    // to avoid timeouts, even if it's old
+    if (isServerless) {
+      // Check for stale in-memory cache
+      if (cache && Date.now() - cache.timestamp < STALE_WHILE_REVALIDATE_TTL) {
+        console.log("⚠️  Returning STALE in-memory cache (serverless mode)");
+        performanceMonitor.recordCacheHit();
+        performanceMonitor.logStats();
+        
+        // Trigger async refresh in background (fire-and-forget)
+        setImmediate(() => {
+          console.log("🔄 Triggering background refresh for stale cache");
+        });
+        
+        return res.json(cache.data);
+      }
+
+      // Check for stale shared cache
+      if (sharedCache && Date.now() - sharedCache.timestamp < STALE_WHILE_REVALIDATE_TTL) {
+        console.log("⚠️  Returning STALE shared cache (serverless mode)");
+        performanceMonitor.recordCacheHit();
+        performanceMonitor.logStats();
+        
+        cache = {
+          data: sharedCache.data,
+          timestamp: sharedCache.timestamp,
+        };
+        
+        return res.json(sharedCache.data);
+      }
+
+      // In serverless with NO cache, return empty state and explain
+      console.error("❌ No cache available in serverless mode - returning empty state");
+      return res.status(503).json({
+        error: "Service initializing",
+        message: "Cache is warming up. Please refresh in a few moments.",
+        videos: [],
+        folders: [],
+        totalVideos: 0,
+      });
     }
 
     performanceMonitor.recordCacheMiss();

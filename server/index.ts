@@ -226,26 +226,38 @@ export async function createServer() {
   // Webhook routes - Protected with authentication
   app.use("/api/admin/webhooks", isAuthenticated, webhooksRouter);
 
-  // Initialize database schemas on server startup
-  initializeDatabase().catch((error) => {
-    console.error("❌ Failed to initialize database:", error);
-  });
+  // Initialize database schemas on server startup (optional in serverless)
+  if (process.env.DATABASE_URL) {
+    initializeDatabase().catch((error) => {
+      console.error("❌ Failed to initialize database:", error);
+    });
+  }
 
-  // Start background refresh on server startup (non-blocking)
-  // Schedule it to run after a short delay to not interfere with first request
-  setTimeout(() => {
-    startBackgroundRefresh();
-  }, 1000);
+  // Only start background tasks in non-serverless environments (e.g., Replit, traditional servers)
+  // Serverless platforms like Vercel shouldn't run background tasks due to timeout limits
+  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+  
+  if (!isServerless) {
+    console.log("🔄 Starting background tasks (traditional server mode)");
+    
+    // Start background refresh on server startup (non-blocking)
+    // Schedule it to run after a short delay to not interfere with first request
+    setTimeout(() => {
+      startBackgroundRefresh();
+    }, 1000);
 
-  // Start log retention cleanup (runs daily)
-  setTimeout(() => {
-    startLogRetentionCleanup();
-  }, 2000);
+    // Start log retention cleanup (runs daily)
+    setTimeout(() => {
+      startLogRetentionCleanup();
+    }, 2000);
 
-  // Start scheduled backup (runs every 24 hours by default)
-  setTimeout(() => {
-    startScheduledBackup();
-  }, 3000);
+    // Start scheduled backup (runs every 24 hours by default)
+    setTimeout(() => {
+      startScheduledBackup();
+    }, 3000);
+  } else {
+    console.log("☁️  Serverless mode: Background tasks disabled");
+  }
 
   return app;
 }
