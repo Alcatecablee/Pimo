@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { Video, VideoFolder, VideosResponse } from "@shared/api";
 import { performanceMonitor } from "../utils/monitoring";
 import { getFromRedisCache, setRedisCache } from "../utils/redis-cache";
-import { sharedCache } from "../utils/background-refresh";
+import { sharedCache, triggerBackgroundRefresh } from "../utils/background-refresh";
 import {
   UPNSHARE_API_BASE,
   fetchWithAuth,
@@ -94,9 +94,7 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
         performanceMonitor.logStats();
         
         // Trigger async refresh in background (fire-and-forget)
-        setImmediate(() => {
-          console.log("🔄 Triggering background refresh for stale cache");
-        });
+        triggerBackgroundRefresh('stale-cache-hit');
         
         return res.json(cache.data);
       }
@@ -111,6 +109,9 @@ export const handleGetVideos: RequestHandler = async (req, res) => {
           data: sharedCache.data,
           timestamp: sharedCache.timestamp,
         };
+        
+        // Trigger async refresh in background (fire-and-forget)
+        triggerBackgroundRefresh('stale-shared-cache-hit');
         
         return res.json(sharedCache.data);
       }

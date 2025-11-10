@@ -165,6 +165,8 @@ export async function createServer() {
   app.get("/api/videos/:id/hls-proxy", handleHlsProxy);
 
   // Background refresh routes
+  // Accept both GET (for Vercel cron) and POST (for manual triggers)
+  app.get("/api/refresh/now", handleRefreshNow);
   app.post("/api/refresh/now", handleRefreshNow);
   app.get("/api/refresh/status", handleRefreshStatus);
 

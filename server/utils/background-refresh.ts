@@ -226,3 +226,18 @@ export function getCacheMetrics() {
     lastRefresh: sharedCache?.timestamp || null,
   };
 }
+
+export function triggerBackgroundRefresh(reason: string = 'manual') {
+  if (isRefreshing) {
+    console.log(`⏭️  Skipping background refresh (${reason}) - already in progress`);
+    return;
+  }
+
+  console.log(`🔄 Triggering background refresh: ${reason}`);
+  
+  queueMicrotask(() => {
+    refreshVideoCache().catch((error) => {
+      console.error(`❌ Background refresh (${reason}) failed:`, error);
+    });
+  });
+}
