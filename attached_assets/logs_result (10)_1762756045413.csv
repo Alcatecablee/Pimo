@@ -1,0 +1,127 @@
+"TimeUTC","timestampInMs","requestPath","requestMethod","requestQueryString","responseStatusCode","requestId","requestUserAgent","level","environment","branch","vercelCache","type","function","host","deploymentDomain","deploymentId","durationMs","region","maxMemoryUsed","memorySize","message","projectId","traceId","sessionId","invocationId","instanceId","concurrency"
+"2025-11-10 06:26:54",1762756014408,"mpz-beta.vercel.app/api/videos","GET","",-1,"mvwn7-1762756013904-7e002747cd9d","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","error","production","main","","lambda","/api/index","mpz-beta.vercel.app","mpz-beta.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P74C5ZMEFZE9842MP74TAB","",-1
+"2025-11-10 06:26:54",1762756014404,"mpz-beta.vercel.app/api/realtime","GET","",-1,"vkh92-1762756013909-199a527a50d4","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","error","production","main","","lambda","/api/index","mpz-beta.vercel.app","mpz-beta.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P74C60QVPAG4S1MHS0YPP2","",-1
+"2025-11-10 06:26:54",1762756014272,"mpz-beta.vercel.app/api/realtime","GET","",500,"vkh92-1762756013909-199a527a50d4","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","error","production","main","","lambda","/api/index","mpz-beta.vercel.app","mpz-beta.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",115,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P74C60QVPAG4S1MHS0YPP2","",1
+"2025-11-10 06:26:54",1762756014271,"mpz-beta.vercel.app/api/videos","GET","",500,"mvwn7-1762756013904-7e002747cd9d","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","error","production","main","","lambda","/api/index","mpz-beta.vercel.app","mpz-beta.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",119,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P74C5ZMEFZE9842MP74TAB","",1
+"2025-11-10 06:26:34",1762755994619,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/videos","GET","",-1,"8rsbg-1762755993973-891a5fe60819","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RGF04Z5A5462SFCBS1X","",-1
+"2025-11-10 06:26:34",1762755994579,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/videos","GET","",-1,"lxd4n-1762755994030-0971da59a32e","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RG07SVP5GZGVEM9GFRZ","",-1
+"2025-11-10 06:26:34",1762755994366,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/realtime","GET","",-1,"sv5qw-1762755994030-839a3ee7bad2","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RFY1QGYB4VXC69ZKP30","",-1
+"2025-11-10 06:26:34",1762755994243,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/realtime","GET","",-1,"25pr6-1762755993973-cc91132b7257","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",-1,"iad1",-1,-1,"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/dist/serverless/index.cjs' imported from /var/task/api/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:280:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at moduleResolveWithNodePath (node:internal/modules/esm/resolve:989:14)
+    at defaultResolve (node:internal/modules/esm/resolve:1032:79)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:783:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:707:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:690:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:307:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/task/dist/serverless/index.cjs'
+}
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RFY1QGYB4VXC8BDQCAN","",-1
+"2025-11-10 06:26:34",1762755994127,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/videos","GET","",500,"8rsbg-1762755993973-891a5fe60819","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",131,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RGF04Z5A5462SFCBS1X","",1
+"2025-11-10 06:26:34",1762755994111,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/videos","GET","",500,"lxd4n-1762755994030-0971da59a32e","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",123,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RG07SVP5GZGVEM9GFRZ","",1
+"2025-11-10 06:26:34",1762755994110,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/realtime","GET","",500,"sv5qw-1762755994030-839a3ee7bad2","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",117,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RFY1QGYB4VXC69ZKP30","",1
+"2025-11-10 06:26:34",1762755994110,"mpz-lf3lfp1tp-alcatecs-projects.vercel.app/api/realtime","GET","",500,"25pr6-1762755993973-cc91132b7257","vercel-screenshot/1.0","error","production","main","","lambda","/api/index","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","mpz-lf3lfp1tp-alcatecs-projects.vercel.app","dpl_keWxSs3FmfX5HcEZtVGoGokpNdiP",116,"iad1",76,2048,"","prj_gtVSgZ6XsYPB8EGETR5StVruReAP","","","01K9P73RFY1QGYB4VXC8BDQCAN","",1
